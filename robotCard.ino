@@ -18,25 +18,36 @@ Servo moteur_bras_inf;//there are 2 motor in parallel for this
 Servo moteur_coude;
 Servo moteur_bras_sup;
 
-int16_t error=0;
+int error=0;
 unsigned long time;
 
 typedef enum{START,SCAN,TAKE,GIVE} ROBOT;
 ROBOT EC_ROBOT,EF_ROBOT;
 
-int16_t robotStartTest(void);
-int16_t robotGoHome(void);
+int robotStartTest(void);
+int robotGoHome(void);
+int robotGoDeck(void);
+int robotGoGive(void);
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
 
+  scanInit();//initialisation du capteur ultrasons
+
+  pinMode(11,OUTPUT);
+  pinMode(10,OUTPUT);
+  pinMode(9,OUTPUT);
+  pinMode(6,OUTPUT);
+  pinMode(5,OUTPUT);
+  pinMode(3,OUTPUT);
+
   moteur_socle.attach(11);
-  moteur_pince_rotate.attach(3);
-  moteur_pince_locking.attach(A1);
-  moteur_bras_inf.attach(9);
-  moteur_coude.attach(10);
-  moteur_bras_sup.attach(5);
+  moteur_pince_rotate.attach(10);
+  moteur_pince_locking.attach(9);
+  moteur_bras_inf.attach(6);
+  moteur_coude.attach(5);
+  moteur_bras_sup.attach(3);
 }
 
 
@@ -51,15 +62,31 @@ void loop() {
       Serial.println(F("robot POSE HOME"));
 
       #ifdef TEST
-      Serial.println(F("test des mouvements...."));
+      Serial.println(F("test des mouvements...."));//mini demo au demarrage
       #endif
+
       EF_ROBOT=SCAN;
+      Serial.println(F("Waiting for client"));
     break;
+
     case SCAN:
+    if(scanPresence()){
+      Serial.println(F("Client detecté!"));
+      delay(1000);//permet d'eviter une colision avec la main du client
+      EF_ROBOT = TAKE;
+    }      
     break;
+
     case TAKE:
+      Serial.println(F("Robot take a card"));
+      robotGoDeck();
+      EF_ROBOT = GIVE;
     break;
     case GIVE:
+      Serial.println(F("Robot Give the card"));
+      robotGoGive();
+      EF_ROBOT = START; 
+
     break;
     default:
     Serial.println(F("ERROR"));
@@ -69,31 +96,35 @@ void loop() {
  EC_ROBOT=EF_ROBOT;
 }
 
-int16_t robotGoHome(void)
+int robotGoHome(void)
 {
-  int16_t posRobot;
-  posRobot=90;
- 
-  moteur_socle.write(0);//ok
-  moteur_pince_rotate.write(70);//ok
-  moteur_pince_locking.write(80);
-  moteur_bras_inf.write(0);
+  moteur_socle.write(0);
+  moteur_pince_rotate.write(10);
+  moteur_pince_locking.write(150);
+  moteur_bras_inf.write(90);
   moteur_coude.write(0);
-  moteur_bras_sup.write(90); //ok
+  moteur_bras_sup.write(180);
   return 0;
 }
 
+int robotGoDeck(void)
+{
+   moteur_socle.write(0);
+   moteur_pince_rotate.write(10);
+   moteur_pince_locking.write(150);
+   moteur_bras_inf.write(90);
+   moteur_coude.write(0);
+   moteur_bras_sup.write(180);
+   return 0;
+}
 
-
-/*
-  // put your main code here, to run repeatedly:
-  for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
-    // in steps of 1 degree
-     moteur_socle.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15ms for the servo to reach the position
-  }
-  for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
-    moteur_socle.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(15);                       // waits 15ms for the servo to reach the position
-  }
-*/
+int robotGoGive(void)
+{
+   moteur_socle.write(0);
+   moteur_pince_rotate.write(10);
+   moteur_pince_locking.write(150);
+   moteur_bras_inf.write(90);
+   moteur_coude.write(0);
+   moteur_bras_sup.write(180);
+   return 0;  
+}
