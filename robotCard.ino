@@ -9,7 +9,9 @@
 #include <Arduino.h>
 #include "scanHandler.h"
 
-#define TEST 1 //si 1 alors test les mouvements
+#define DEMO   1 //si 1 alors test les mouvements aatention consommation d'energie élevé
+#define FALSE  0
+#define TRUE   1
 
 Servo moteur_socle;  // create servo object to control a servo until 12 for arduino Uno
 Servo moteur_pince_rotate;  
@@ -28,6 +30,8 @@ int robotStartTest(void);
 int robotGoHome(void);
 int robotGoDeck(void);
 int robotGoGive(void);
+int robotDemo(void);
+int robotMaintient(int);
 
 void setup() {
   // put your setup code here, to run once:
@@ -42,27 +46,26 @@ void setup() {
   pinMode(5,OUTPUT);
   pinMode(3,OUTPUT);
 
-  moteur_socle.attach(11);
-  moteur_pince_rotate.attach(10);
-  moteur_pince_locking.attach(9);
-  moteur_bras_inf.attach(6);
-  moteur_coude.attach(5);
-  moteur_bras_sup.attach(3);
 }
 
 
 void loop() {
 
   switch (EC_ROBOT){
+
     case START:
       Serial.println(F("robot START"));
-      Serial.println(F("robot GO HOME"));
 
-      if (robotGoHome()){EF_ROBOT =-1;break;/*error*/}
-      Serial.println(F("robot POSE HOME"));
-
-      #ifdef TEST
-      Serial.println(F("test des mouvements...."));//mini demo au demarrage
+      #ifdef DEMO
+        robotMaintient(TRUE);/*Active l'auto maintient*/
+        Serial.println(F("robot GO HOME"));     
+        if (robotGoHome()){EF_ROBOT =-1;break;/*error*/}
+        Serial.println(F("robot POSE HOME"));
+    
+        Serial.println(F("test des mouvements...."));//mini demo
+        robotDemo();
+      #else          
+      robotMaintient(FALSE);/*Desactive l'auto maintient*/
       #endif
 
       EF_ROBOT=SCAN;
@@ -127,4 +130,31 @@ int robotGoGive(void)
    moteur_coude.write(0);
    moteur_bras_sup.write(180);
    return 0;  
+}
+
+int robotDemo(void)
+{
+  return 0;
+}
+
+int robotMaintient(int state)
+{
+  if (!state)
+  {
+      moteur_socle.detach();
+      moteur_pince_rotate.detach();
+      moteur_pince_locking.detach();
+      moteur_bras_inf.detach();
+      moteur_coude.detach();
+      moteur_bras_sup.detach();   
+  }
+  else {
+      moteur_socle.attach(11);
+      moteur_pince_rotate.attach(10);
+      moteur_pince_locking.attach(9);
+      moteur_bras_inf.attach(6);
+      moteur_coude.attach(5);
+      moteur_bras_sup.attach(3);       
+  }
+
 }
