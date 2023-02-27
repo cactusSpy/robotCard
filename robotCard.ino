@@ -65,7 +65,7 @@ void loop() {
         Serial.println(F("test des mouvements...."));//mini demo
         robotDemo();
       #else          
-      robotMaintient(FALSE);/*Desactive l'auto maintient*/
+      robotMaintientb(FALSE);/*Desactive l'auto maintient*/
       #endif
 
       EF_ROBOT=SCAN;
@@ -158,3 +158,5 @@ int robotMaintient(int state)
   }
 
 }
+
+int 

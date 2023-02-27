@@ -9,14 +9,15 @@
 /* Constantes pour le timeout */
 #define  MEASURE_TIMEOUT    25000UL // 25ms = ~8m à 340m/s
 #define  SOUND_SPEED        340.0 / 1000/* Vitesse du son dans l'air en mm/us */
-#define  distanceMin_mm     300
+#define  distanceMin_mm     200
 #define  distanceMax_mm     400
 #define  delayDetection_ms  600
-#define  delayMesure_ms     200
+#define  delayMesure_ms     100
 
 static unsigned long currentTime;
 static unsigned long previousTimeDetection;
 static unsigned long previousTimeMesure;
+static int comptScan = 0;
 
 void scanInit()
 {
@@ -44,27 +45,17 @@ int scanPresence(void) {
     /* 3. Calcul la distance à partir du temps mesuré */
     float distance_mm = measure / 2.0 * SOUND_SPEED;
 
-    /* Affiche les résultats en mm, cm et m */
-    #ifdef DISPLAY_MESURE
-    Serial.print(F("Distance: "));
-    Serial.print(distance_mm);
-    Serial.print(F("mm ("));
-    Serial.print(distance_mm / 10.0, 2);
-    Serial.print(F("cm, "));
-    Serial.print(distance_mm / 1000.0, 2);
-    Serial.println(F("m)"));
-    #endif
-
     if ((distance_mm > distanceMin_mm) && (distance_mm < distanceMax_mm))
     {
-      currentTime = millis();//Ce if millis pourrait être modifié par un compteur pour lancer l'action de bras de robot au bout de x mesures dans l'intervale de distance 
-      if ((currentTime - previousTimeMesure) > delayDetection_ms)
+      comptScan ++;
+      
+      if ((comptScan ) > 2)
       {
-        previousTimeMesure = currentTime;     
+        comptScan = 0; //RAZ    
         return 1;//action bras de robot
       }
     }
-    else currentTime = 0;
+    else comptScan = 0; //RAZ    
   }
   return 0;
 }
